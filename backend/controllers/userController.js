@@ -70,6 +70,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Profile updated. Verification email sent.",
+      user,
     });
   }
 

@@ -7,10 +7,13 @@ const ProfilePage = () => {
 
   const { user: authUser } = useSelector((state) => state.auth);
   const { loading, user: updatedUser } = useSelector((state) => state.prof);
+  const authAvatar =
+    typeof authUser?.avatar === "string" ? authUser.avatar : authUser?.avatar?.url;
 
   const [name, setName] = useState(authUser?.name || "");
   const [email, setEmail] = useState(authUser?.email || "");
-  const [avatar, setAvatar] = useState(authUser?.avatar?.url || "");
+  const [avatar, setAvatar] = useState(authAvatar || "");
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
 
   const handleAvatarChange = (e) => {
@@ -28,7 +31,12 @@ const ProfilePage = () => {
     if (updatedUser) {
       setName(updatedUser.name || "");
       setEmail(updatedUser.email || "");
-      setAvatar(updatedUser.avatar?.url || "");
+      setAvatar(
+        typeof updatedUser.avatar === "string"
+          ? updatedUser.avatar
+          : updatedUser.avatar?.url || ""
+      );
+      setAvatarLoadFailed(false);
     }
   }, [updatedUser]);
 
@@ -62,10 +70,12 @@ const ProfilePage = () => {
 
             <div className="relative">
 
-              {avatar ? (
+              {avatar && !avatarLoadFailed ? (
                 <img
                   src={avatar}
                   alt="avatar"
+                  referrerPolicy="no-referrer"
+                  onError={() => setAvatarLoadFailed(true)}
                   className="w-32 h-32 rounded-full object-cover border-4 border-[#9caf88] shadow-lg"
                 />
               ) : (

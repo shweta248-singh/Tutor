@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+
 // ---- Load user from localStorage on startup ----
 const savedUser = (localStorage.getItem("user") && localStorage.getItem("user") !== "undefined")
   ? JSON.parse(localStorage.getItem("user"))
@@ -114,6 +115,7 @@ export const login = (data) => async (dispatch) => {
     toast.success("Logged in successfully");
   } catch (err) {
     const message = err.response?.data?.message || err.message;
+    localStorage.removeItem("user");
     toast.error(message);
     dispatch(authSlice.actions.LoginFailed(message));
   }
@@ -129,11 +131,13 @@ export const googleLogin = (credential) => async (dispatch) => {
       { withCredentials: true }
     );
 
-    dispatch(authSlice.actions.LoginSuccess(res.user));
-    localStorage.setItem("user", JSON.stringify(res.user));
+    const googleUser = { ...res.user, role: "student", authProvider: "google" };
+    dispatch(authSlice.actions.LoginSuccess(googleUser));
+    localStorage.setItem("user", JSON.stringify(googleUser));
     toast.success("Logged in successfully with Google");
   } catch (err) {
     const message = err.response?.data?.message || err.message;
+    localStorage.removeItem("user");
     toast.error(message);
     dispatch(authSlice.actions.LoginFailed(message));
   }

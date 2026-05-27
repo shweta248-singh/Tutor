@@ -201,12 +201,13 @@ export const updateProfile = (formData) => async (dispatch) => {
     });
 
     dispatch(profileSlice.actions.UpdateProfileSuccess(data));
+    if (data.user) {
+      dispatch({ type: "auth/LoginSuccess", payload: data.user });
+    }
     toast.success(data.message || "Profile updated successfully");
 
     if (data.user) {
       localStorage.setItem("user", JSON.stringify(data.user));
-    } else {
-      localStorage.removeItem("user");
     }
   } catch (err) {
     const message = err.response?.data?.message || err.message || "Profile update failed";

@@ -13,8 +13,10 @@ function Dashboard() {
       navigate("/student-dashboard");
     } else if (user.role === "teacher") {
       navigate("/teacher-dashboard");
-    } else {
+    } else if (user.role === "admin") {
       navigate("/admin-dashboard");
+    } else {
+      navigate("/student-dashboard");
     }
   }, [user, navigate]);
 

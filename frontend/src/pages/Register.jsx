@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { register, googleLogin } from "../store/slices/authSlice";
+import { googleLogin } from "../store/slices/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -10,7 +10,7 @@ function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,9 +55,15 @@ function Register() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      if (user?.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user?.role === "teacher") {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/student-dashboard");
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user?.role, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#dfe6da] px-4 py-6">

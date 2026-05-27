@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaUserCircle, FaPaperPlane, FaTrashAlt } from "react-icons/fa";
+import { FaUserCircle, FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -32,7 +32,7 @@ export const AIChatSection = () => {
       if (res.data.success) {
         setMessages(res.data.messages);
       }
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "ai", text: "⚠️ AI error occurred" },
@@ -116,16 +116,19 @@ export const AIChatSection = () => {
 /* ---------------- DASHBOARD ---------------- */
 
 const StudentDashboard = () => {
-  const studentId = useSelector((state) => state.auth?._id);
   const { user } = useSelector((state) => state.auth);
+  const studentId = user?._id;
+  const avatarUrl =
+    typeof user?.avatar === "string" ? user.avatar : user?.avatar?.url;
 
-  const [profileImage, setProfileImage] = useState(user?.avatar?.url);
+  const [profileImage, setProfileImage] = useState(avatarUrl);
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) setProfileImage(URL.createObjectURL(file));
-  };
+  useEffect(() => {
+    setProfileImage(avatarUrl || "");
+    setImageLoadFailed(false);
+  }, [avatarUrl]);
 
   return (
     <div className="flex h-screen pt-16 bg-[#dfe6da] overflow-hidden">
@@ -164,10 +167,12 @@ const StudentDashboard = () => {
         {/* PROFILE */}
         <div className="flex flex-col items-center">
 
-          {profileImage ? (
+          {profileImage && !imageLoadFailed ? (
             <img
               src={profileImage}
               alt="Profile"
+              referrerPolicy="no-referrer"
+              onError={() => setImageLoadFailed(true)}
               className="w-24 sm:w-32 h-24 sm:h-32 rounded-full object-cover border-4 border-[#dfe6da]"
             />
           ) : (

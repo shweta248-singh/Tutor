@@ -2,6 +2,7 @@ import { Notification } from "../models/Notification.js";
 import { catchAsyncError } from "../middleware/catchAsyncError.js";
 import { ErrorHandler } from "../middleware/errormiddleware.js";
 import { getIO } from "../utils/socket.js";
+import { User } from "../models/User.js";
 
 // Fetch my notifications
 export const getMyNotifications = catchAsyncError(async (req, res, next) => {
@@ -21,6 +22,10 @@ export const markAsRead = catchAsyncError(async (req, res, next) => {
 
   if (!notification) {
     return next(new ErrorHandler("Notification not found", 404));
+  }
+
+  if (notification.recipient.toString() !== req.user._id.toString()) {
+    return next(new ErrorHandler("You cannot update this notification", 403));
   }
 
   notification.isRead = true;
@@ -55,4 +60,17 @@ export const createAndSendNotification = async (data) => {
   } catch (error) {
     console.error("Error sending notification:", error);
   }
+};
+
+export const notifyAllStudents = async (data) => {
+  const students = await User.find({ role: "student" }).select("_id");
+
+  await Promise.all(
+    students.map((student) =>
+      createAndSendNotification({
+        ...data,
+        recipient: student._id,
+      })
+    )
+  );
 };

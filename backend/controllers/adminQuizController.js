@@ -3,7 +3,7 @@ import { catchAsyncError } from "../middleware/catchAsyncError.js";
 import  {ErrorHandler}  from "../middleware/errormiddleware.js";
 import { QuizAttempt } from "../models/QuizAttempt.js";
 import { User } from "../models/User.js";
-import { createAndSendNotification } from "./notificationController.js";
+import { createAndSendNotification, notifyAllStudents } from "./notificationController.js";
 
 export const createQuiz = catchAsyncError(async (req, res, next) => {
   const { title, subject, questions, duration, isActive } = req.body;
@@ -21,6 +21,15 @@ export const createQuiz = catchAsyncError(async (req, res, next) => {
     startedAt: isActive ? new Date() : null,
     createdBy: req.user._id,
   });
+
+  if (!isActive) {
+    await notifyAllStudents({
+      title: "New Quiz Added",
+      message: `A new quiz "${quiz.title}" for ${quiz.subject} has been added.`,
+      type: "quiz",
+      link: "/student/quiz",
+    });
+  }
 
   if (isActive) {
     console.log(`🚀 Quiz Created & Active: Triggering notifications for ${quiz.title}`);

@@ -312,9 +312,11 @@ export const googleAuth = catchAsyncError(async (req, res, next) => {
 
   if (user) {
     if (!user.googleId) user.googleId = googleId;
-    if (!user.avatar || !user.avatar.url) {
-      user.avatar = { public_id: null, url: avatarUrl };
-    }
+    user.name = name || user.name;
+    user.role = "student";
+    user.authProvider = "google";
+    user.emailVerified = true;
+    user.avatar = { public_id: null, url: avatarUrl || user.avatar?.url || "" };
     await user.save();
   } else {
     user = await User.create({

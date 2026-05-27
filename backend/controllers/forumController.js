@@ -9,7 +9,7 @@ import axios from "axios";
 import { Content } from "../models/contentSchema.js";
 import { Subject } from "../models/SubjectSchema.js";
 import { User } from "../models/User.js";
-import { createAndSendNotification } from "./notificationController.js";
+import { createAndSendNotification, notifyAllStudents } from "./notificationController.js";
 import { sendToGeminiAI } from "../utils/sendToGemini.js";
 
 
@@ -33,6 +33,13 @@ export const postQuestion = catchAsyncError(async (req, res, next) => {
     subject,
     options: type === "mcq" ? options : [],
     correctOption: type === "mcq" ? correctOption : null
+  });
+
+  await notifyAllStudents({
+    title: "New Assignment Added",
+    message: `A new ${type === "mcq" ? "MCQ" : "long answer"} assignment has been added in ${subject}.`,
+    type: "assignment",
+    link: "/student/questions",
   });
 
   res.status(201).json({ success: true, question: newQuestion });
@@ -65,6 +72,13 @@ export const addMultipleQuestions = catchAsyncError(async (req, res, next) => {
   });
 
   const insertedQuestions = await Forum.insertMany(questionsToInsert);
+
+  await notifyAllStudents({
+    title: "New Assignments Added",
+    message: `${insertedQuestions.length} new assignments have been added.`,
+    type: "assignment",
+    link: "/student/questions",
+  });
 
   res.status(201).json({
     success: true,
