@@ -9,6 +9,8 @@ import sendEmail from "../utils/sendEmail.js";
 import crypto from "crypto";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const getFrontendUrl = () =>
+  process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Generate JWT and send cookie
 const sendToken = (user, statusCode, res) => {
@@ -92,7 +94,7 @@ export const register = catchAsyncError(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // For testing/production link
-  const frontendVerifyUrl = `http://localhost:5173/verify-email/${verificationToken}`;
+  const frontendVerifyUrl = `${getFrontendUrl()}/verify-email/${verificationToken}`;
 
   const htmlMessage = `
     <!DOCTYPE html>
@@ -204,7 +206,7 @@ export const resendVerificationToken = catchAsyncError(async (req, res, next) =>
   const verificationToken = user.generateEmailVerifyToken();
   await user.save({ validateBeforeSave: false });
 
-  const frontendVerifyUrl = `http://localhost:5173/verify-email/${verificationToken}`;
+  const frontendVerifyUrl = `${getFrontendUrl()}/verify-email/${verificationToken}`;
 
   const htmlMessage = `
     <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">

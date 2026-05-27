@@ -23,6 +23,15 @@ import notificationRoutes from "./routes/notificationRoutes.js"
 
 export const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+  ...(process.env.FRONTEND_URLS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+].filter(Boolean);
+
 app.use(
   helmet({
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
@@ -37,13 +46,16 @@ app.use(
   // })
 
   cors({
-  origin: [
-    "http://localhost:5173",
-    "https://edunova-frontend-odky.onrender.com",
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  credentials: true,
-})
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    credentials: true,
+  })
 );
 app.use(cookieParser());
 app.use(express.json());
